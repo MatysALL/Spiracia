@@ -1,15 +1,54 @@
-import { useNavigate } from 'react-router-dom'
-import { Swords } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Logo3D } from '../components/Logo3D'
 import { useGameStore } from '../store/gameStore'
+import { generatePlayerName } from '../utils/playerName'
 
 export function Home() {
   const navigate = useNavigate()
-  const { currentPlayerName, setPlayerName, joinOrCreateGame } = useGameStore()
+  const [searchParams] = useSearchParams()
+  const { currentPlayerName, setPlayerName, createGame, joinGameWithId } = useGameStore()
+  const [gameIdInput, setGameIdInput] = useState('')
+  const [generatedName, setGeneratedName] = useState('')
 
-  const handleJoin = () => {
-    joinOrCreateGame(currentPlayerName)
+  useEffect(() => {
+    const name = generatePlayerName()
+    setGeneratedName(name)
+    setPlayerName(name)
+  }, [])
+
+  const handleCreateGame = async () => {
+    const name = generatedName || currentPlayerName
+    if (!name.trim()) return
+    await createGame(name)
     navigate('/lobby')
   }
+
+  const handleJoinRandom = async () => {
+    const name = generatedName || currentPlayerName
+    if (!name.trim()) return
+    await joinGameWithId(null, name)
+    navigate('/lobby')
+  }
+
+  const handleJoinWithId = async () => {
+    const name = generatedName || currentPlayerName
+    if (!name.trim()) return
+    const id = gameIdInput.trim().padStart(3, '0').slice(0, 3)
+    if (id.length !== 3 || !/^\d{3}$/.test(id)) {
+      alert('Veuillez entrer un ID valide (3 chiffres)')
+      return
+    }
+    await joinGameWithId(id, name)
+    navigate('/lobby')
+  }
+
+  useEffect(() => {
+    const idFromUrl = searchParams.get('id')
+    if (idFromUrl) {
+      setGameIdInput(idFromUrl)
+    }
+  }, [searchParams])
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-gradient-to-b from-stone-900 via-stone-850 to-stone-950">
@@ -17,30 +56,73 @@ export function Home() {
       <div className="relative z-10 text-center max-w-md w-full">
         <div className="flex justify-center mb-6">
           <div className="rounded-2xl bg-stone-800/80 p-6 border border-amber-800/50 shadow-xl">
-            <Swords className="w-20 h-20 text-amber-400 mx-auto" strokeWidth={1.5} />
+            <Logo3D className="mx-auto" />
           </div>
         </div>
-        <h1 className="font-display text-5xl md:text-6xl text-amber-100 mb-2 tracking-wide">
+        <h1 className="font-display text-5xl md:text-6xl text-amber-100 mb-2 tracking-wide" style={{ fontFamily: '"Medieval Sharp", cursive' }}>
           Spiracia
         </h1>
         <p className="text-stone-400 text-sm mb-8 font-body">
-          Ville médiévale • Complots
+          Comprend les cartes de : Complots 1
         </p>
         <div className="space-y-4">
-          <label className="block text-left text-stone-400 text-sm">Votre nom</label>
-          <input
-            type="text"
-            value={currentPlayerName}
-            onChange={(e) => setPlayerName(e.target.value)}
-            placeholder="Joueur"
-            className="w-full px-4 py-3 rounded-xl bg-stone-800 border border-stone-600 text-parchment placeholder-stone-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-600"
-          />
-          <button
-            onClick={handleJoin}
-            className="w-full py-4 rounded-xl font-display text-lg bg-amber-600 hover:bg-amber-500 text-stone-900 font-semibold transition-colors shadow-lg hover:shadow-amber-500/20"
-          >
-            Rejoindre une partie
-          </button>
+          <div>
+            <label className="block text-left text-stone-400 text-sm mb-2">Votre nom</label>
+            <input
+              type="text"
+              value={currentPlayerName}
+              onChange={(e) => setPlayerName(e.target.value)}
+              placeholder={generatedName}
+              className="w-full px-4 py-3 rounded-xl bg-stone-800 border border-stone-600 text-parchment placeholder-stone-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-600"
+            />
+            <button
+              onClick={() => {
+                const newName = generatePlayerName()
+                setGeneratedName(newName)
+                setPlayerName(newName)
+              }}
+              className="mt-2 text-xs text-amber-400 hover:text-amber-300 underline"
+            >
+              Générer un nouveau nom
+            </button>
+          </div>
+
+          <div className="space-y-3">
+            <button
+              onClick={handleCreateGame}
+              className="w-full py-3 rounded-xl font-display text-base bg-amber-600 hover:bg-amber-500 text-stone-900 font-semibold transition-colors shadow-lg hover:shadow-amber-500/20"
+            >
+              Créer une partie
+            </button>
+
+            <button
+              onClick={handleJoinRandom}
+              className="w-full py-3 rounded-xl font-display text-base bg-stone-700 hover:bg-stone-600 text-parchment font-semibold transition-colors"
+            >
+              Rejoindre une partie aléatoire
+            </button>
+
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={gameIdInput}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, '').slice(0, 3)
+                  setGameIdInput(val)
+                }}
+                placeholder="000"
+                maxLength={3}
+                className="flex-1 px-4 py-3 rounded-xl bg-stone-800 border border-stone-600 text-parchment placeholder-stone-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-600 text-center font-mono text-lg"
+              />
+              <button
+                onClick={handleJoinWithId}
+                disabled={gameIdInput.length !== 3}
+                className="px-6 py-3 rounded-xl font-display text-base bg-stone-700 hover:bg-stone-600 disabled:opacity-50 disabled:cursor-not-allowed text-parchment font-semibold transition-colors"
+              >
+                Rejoindre
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
