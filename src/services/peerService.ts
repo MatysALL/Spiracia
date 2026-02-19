@@ -82,8 +82,9 @@ export class PeerService {
       this.onConnectionCallback?.(peerId)
     })
 
-    conn.on('data', (data: PeerMessage) => {
-      this.onMessageCallback?.(data, peerId)
+    conn.on('data', (data: unknown) => {
+      const message = data as PeerMessage
+      this.onMessageCallback?.(message, peerId)
     })
 
     conn.on('close', () => {

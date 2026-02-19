@@ -111,7 +111,7 @@ interface GameStore {
 
 export const useGameStore = create<GameStore>((set, get) => {
   // Setup PeerJS message handler
-  peerService.setOnMessage((message: PeerMessage, from: string) => {
+  peerService.setOnMessage((message: PeerMessage, _from: string) => {
     const store = get()
     switch (message.type) {
       case 'game-state':
@@ -159,7 +159,7 @@ export const useGameStore = create<GameStore>((set, get) => {
         .padStart(3, '0')
 
       try {
-        const peerId = await peerService.initialize(true, gameId)
+        await peerService.initialize(true, gameId)
         const game: LobbyGame = {
           id: gameId,
           players: [{ id: playerId, name: playerName }],
@@ -370,7 +370,7 @@ export const useGameStore = create<GameStore>((set, get) => {
     },
 
     ambassadeurChooseCards: (cardIdsToKeep) => {
-      const { games, currentGameId, currentPlayerId, isHost } = get()
+      const { games, currentGameId, currentPlayerId } = get()
       const game = games.find((g) => g.id === currentGameId)
       if (!game?.gameState || !currentPlayerId) return
       const state = game.gameState
@@ -604,13 +604,8 @@ function sanitizeGameStateForPlayer(state: GameState, viewingPlayerId: string): 
 }
 
 function updateGameState(store: GameStore, state: GameState) {
-  const { games, currentGameId, isHost } = store
+  const { currentGameId, isHost } = store
   if (!currentGameId) return
-  
-  // Mettre à jour l'état local avec toutes les informations (pour le host)
-  const updatedGames = games.map((g) =>
-    g.id === currentGameId ? { ...g, gameState: state } : g
-  )
   
   // Le host garde l'état complet, les autres reçoivent une version sanitisée
   if (isHost) {
@@ -639,7 +634,7 @@ function advanceTurn(state: GameState) {
   state.currentTurnPlayerId = state.players[nextIdx].id
 }
 
-function applyAction(store: GameStore, state: GameState, pending: PendingAction) {
+function applyAction(_store: GameStore, state: GameState, pending: PendingAction) {
   const { actionType, playerId, targetPlayerId } = pending
   const actor = state.players.find((p) => p.id === playerId)!
   const target = targetPlayerId ? state.players.find((p) => p.id === targetPlayerId) : null
