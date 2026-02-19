@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Coins, Library } from 'lucide-react'
+import { Coins, Library, BookOpen } from 'lucide-react'
 import { useGameStore } from '../store/gameStore'
 import { CharacterIcon, getCharacterLabel } from '../components/CharacterIcon'
 import { ActionLog } from '../components/ActionLog'
 import { ReactionTimer } from '../components/ReactionTimer'
+import { RulesModal } from '../components/RulesModal'
 import type { ActionType, Character } from '../types/game'
 import { CHARACTERS } from '../types/game'
 
 export function Game() {
   const navigate = useNavigate()
+  const [showRules, setShowRules] = useState(false)
   const {
     currentGameId,
     currentPlayerId,
@@ -40,26 +42,6 @@ export function Game() {
     const t = setInterval(tickReactionTimer, 500)
     return () => clearInterval(t)
   }, [state?.phase, tickReactionTimer])
-
-  // Simulation des tours des bots
-  useEffect(() => {
-    if (!state || state.phase !== 'action' || !state.currentTurnPlayerId) return
-    const turnPlayer = state.players.find((p) => p.id === state.currentTurnPlayerId)
-    if (!turnPlayer?.name.startsWith('Bot') || turnPlayer.isEliminated) return
-    const timer = setTimeout(() => {
-      const alive = state.players.filter((p) => !p.isEliminated && p.id !== turnPlayer.id)
-      if (turnPlayer.coins >= 10 && alive.length > 0) {
-        performAction('ASSASSINAT', alive[0].id)
-      } else if (turnPlayer.coins >= 7 && alive.length > 0 && Math.random() > 0.6) {
-        performAction('ASSASSINAT', alive[Math.floor(Math.random() * alive.length)].id)
-      } else if (Math.random() > 0.5) {
-        performAction('REVENU')
-      } else {
-        performAction('AIDE_ETRANGERE')
-      }
-    }, 1800)
-    return () => clearTimeout(timer)
-  }, [state?.currentTurnPlayerId, state?.phase, state?.players, performAction])
 
   if (!state) return null
 
@@ -114,17 +96,28 @@ export function Game() {
 
   return (
     <div className="min-h-screen flex flex-col bg-stone-900 text-parchment pb-safe">
-      {/* Zone centrale : Trésor + Cour */}
+      {/* Bouton règles en haut */}
+      <div className="p-4 flex justify-end">
+        <button
+          onClick={() => setShowRules(true)}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-stone-800 text-stone-400 hover:text-parchment border border-stone-600"
+        >
+          <BookOpen className="w-4 h-4" />
+          Règles
+        </button>
+      </div>
+
+      {/* Zone centrale : Trésor + Cour + Journal */}
       <div className="flex-1 p-4 flex flex-col md:flex-row gap-4">
-        <main className="flex-1 flex flex-col items-center justify-center gap-6 rounded-2xl bg-stone-800/60 border border-stone-600 p-6">
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-900/40 border border-amber-700">
-              <Coins className="w-6 h-6 text-amber-400" />
-              <span className="font-display text-xl text-amber-200">Trésor</span>
+        <main className="flex-1 flex flex-col items-center justify-center gap-4 rounded-2xl bg-stone-800/60 border border-stone-600 p-4">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-900/40 border border-amber-700">
+              <Coins className="w-5 h-5 text-amber-400" />
+              <span className="font-display text-lg text-amber-200">Trésor</span>
               <span className="font-mono text-amber-100">{state.treasury}</span>
             </div>
-            <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-stone-700/60 border border-stone-600">
-              <Library className="w-6 h-6 text-stone-400" />
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-stone-700/60 border border-stone-600">
+              <Library className="w-5 h-5 text-stone-400" />
               <span className="text-stone-300">Cour</span>
               <span className="font-mono">{state.court.length}</span>
             </div>
@@ -141,12 +134,11 @@ export function Game() {
               </p>
             </div>
           )}
+          {/* Journal collé au terrain */}
+          <div className="w-full mt-4">
+            <ActionLog logs={state.logs} />
+          </div>
         </main>
-
-        {/* Logs à droite / overlay */}
-        <aside className="w-full md:w-72 shrink-0">
-          <ActionLog logs={state.logs} />
-        </aside>
       </div>
 
       {/* Overlay Ambassadeur : choisir 2 cartes */}
@@ -172,23 +164,34 @@ export function Game() {
       <div className="px-4 py-2 flex flex-wrap gap-2 justify-center border-t border-stone-700">
         {state.players
           .filter((p) => p.id !== currentPlayerId && !p.isEliminated)
-          .map((p) => (
-            <div
-              key={p.id}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border ${
-                p.isAbandoned ? 'bg-red-900/30 border-red-700' : 'bg-stone-800 border-stone-600'
-              } ${state.currentTurnPlayerId === p.id ? 'ring-2 ring-amber-500' : ''}`}
-            >
-              <span className="text-sm font-medium">{p.name}</span>
-              <Coins className="w-4 h-4 text-amber-500" />
-              <span className="text-xs">{p.coins}</span>
-              <div className="flex gap-0.5">
-                {p.cards.map((c) => (
-                  <CharacterIcon key={c.id} character={c.character} revealed={c.revealed} size="sm" />
-                ))}
+          .map((p) => {
+            const revealedCards = p.cards.filter((c) => c.revealed)
+            const hiddenCards = p.cards.filter((c) => !c.revealed)
+            return (
+              <div
+                key={p.id}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border ${
+                  p.isAbandoned ? 'bg-red-900/30 border-red-700' : 'bg-stone-800 border-stone-600'
+                } ${state.currentTurnPlayerId === p.id ? 'ring-2 ring-amber-500' : ''}`}
+              >
+                <span className="text-sm font-medium">{p.name}</span>
+                <Coins className="w-4 h-4 text-amber-500" />
+                <span className="text-xs">{p.coins}</span>
+                <div className="flex gap-0.5">
+                  {revealedCards.map((c) => (
+                    <CharacterIcon key={c.id} character={c.character} revealed={true} size="sm" />
+                  ))}
+                  {hiddenCards.map((c, idx) => (
+                    <div
+                      key={`hidden-${idx}`}
+                      className="w-6 h-6 rounded bg-stone-700 border border-stone-600 cursor-pointer hover:bg-stone-600 transition-colors"
+                      title="Cliquez pour faire une supposition"
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
       </div>
 
       {/* Mes cartes + actions en bas */}
@@ -264,7 +267,7 @@ export function Game() {
                         <button
                           key={target.id}
                           onClick={() => handleAction('ASSASSINAT', target.id)}
-                          className="px-4 py-2 rounded-lg bg-red-700 hover:bg-red-600 text-white text-sm"
+                          className="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-500 text-white text-sm"
                         >
                           Assassinat → {target.name}
                         </button>
@@ -276,13 +279,13 @@ export function Game() {
                 <>
                   <button
                     onClick={() => handleAction('REVENU')}
-                    className="px-3 py-2 rounded-lg bg-stone-600 hover:bg-stone-500 text-sm"
+                    className="px-3 py-2 rounded-lg bg-green-600 hover:bg-green-500 text-white text-sm"
                   >
                     Revenu (+1)
                   </button>
                   <button
                     onClick={() => handleAction('AIDE_ETRANGERE')}
-                    className="px-3 py-2 rounded-lg bg-stone-600 hover:bg-stone-500 text-sm"
+                    className={getActionButtonClass('AIDE_ETRANGERE', me)}
                   >
                     Aide étrangère (+2)
                   </button>
@@ -291,7 +294,7 @@ export function Game() {
                       <button
                         key={target.id}
                         onClick={() => handleAction('ASSASSINAT', target.id)}
-                        className="px-3 py-2 rounded-lg bg-red-800/60 hover:bg-red-700 text-sm"
+                        className="px-3 py-2 rounded-lg bg-green-600 hover:bg-green-500 text-white text-sm"
                       >
                         Assassinat → {target.name}
                       </button>
@@ -308,11 +311,48 @@ export function Game() {
                 </>
               )}
             </div>
+            <div className="mt-3 pt-3 border-t border-stone-700 text-xs text-stone-500">
+              <div className="flex flex-wrap gap-4">
+                <span><span className="inline-block w-3 h-3 bg-green-600 rounded mr-1"></span>Incontrable</span>
+                <span><span className="inline-block w-3 h-3 bg-yellow-600 rounded mr-1"></span>Contrable (votre rôle)</span>
+                <span><span className="inline-block w-3 h-3 bg-red-600 rounded mr-1"></span>Contrable (bluff)</span>
+              </div>
+            </div>
           </div>
         )}
       </div>
+
+      <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
     </div>
   )
+}
+
+function getActionButtonClass(actionType: ActionType, me: { cards: { character: Character; revealed: boolean }[] }): string {
+  const incontrable = actionType === 'REVENU' || actionType === 'ASSASSINAT'
+  if (incontrable) {
+    return 'px-3 py-2 rounded-lg bg-green-600 hover:bg-green-500 text-white text-sm'
+  }
+
+  const hasCharacter = (char: Character) =>
+    me.cards.some((c) => !c.revealed && c.character === char)
+
+  const characterMap: Record<ActionType, Character | null> = {
+    REVENU: null,
+    AIDE_ETRANGERE: null,
+    ASSASSINAT: null,
+    POUVOIR_DUCHESSE: 'DUCHESSE',
+    POUVOIR_ASSASSIN: 'ASSASSIN',
+    POUVOIR_COMTESSE: 'COMTESSE',
+    POUVOIR_CAPITAINE: 'CAPITAINE',
+    POUVOIR_AMBASSADEUR: 'AMBASSADEUR',
+  }
+
+  const requiredChar = characterMap[actionType]
+  if (requiredChar && hasCharacter(requiredChar)) {
+    return 'px-3 py-2 rounded-lg bg-yellow-600 hover:bg-yellow-500 text-white text-sm'
+  }
+
+  return 'px-3 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white text-sm'
 }
 
 function CharacterActionButton({
@@ -322,7 +362,7 @@ function CharacterActionButton({
   onAction,
 }: {
   character: Character
-  me: { coins: number; cards: { character: Character }[] }
+  me: { coins: number; cards: { character: Character; revealed: boolean }[] }
   aliveOpponents: { id: string; name: string }[]
   onAction: (action: ActionType, targetId?: string, claimed?: Character) => void
 }) {
@@ -340,11 +380,13 @@ function CharacterActionButton({
   if (needCoins) return null
 
   const label = getCharacterLabel(character)
+  const buttonClass = getActionButtonClass(action, me)
+  
   if (!needTarget) {
     return (
       <button
         onClick={() => onAction(action, undefined, character)}
-        className="px-3 py-2 rounded-lg bg-stone-600 hover:bg-stone-500 text-sm"
+        className={buttonClass}
       >
         {label}
       </button>
@@ -356,7 +398,7 @@ function CharacterActionButton({
         <button
           key={target.id}
           onClick={() => onAction(action, target.id, character)}
-          className="px-3 py-2 rounded-lg bg-stone-600 hover:bg-stone-500 text-sm"
+          className={buttonClass}
         >
           {label} → {target.name}
         </button>
