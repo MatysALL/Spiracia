@@ -7,32 +7,32 @@ import { TITLES } from '../utils/playerName'
 export function Home() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const { currentPlayerName, setPlayerName, createGame, joinGameWithId } = useGameStore()
+  const { setPlayerName, createGame, joinGameWithId } = useGameStore()
   const [gameIdInput, setGameIdInput] = useState('')
-  const [selectedTitle, setSelectedTitle] = useState(TITLES[0])
+  const [title, setTitle] = useState<string>('Forniqueur')
   const [pseudo, setPseudo] = useState('joueur')
 
   useEffect(() => {
-    const fullName = `${selectedTitle} ${pseudo}`
+    const fullName = `${title} ${pseudo}`
     setPlayerName(fullName)
-  }, [selectedTitle, pseudo, setPlayerName])
+  }, [title, pseudo, setPlayerName])
 
   const handleCreateGame = async () => {
-    const name = `${selectedTitle} ${pseudo || 'joueur'}`
+    const name = `${title} ${pseudo || 'joueur'}`
     if (!pseudo.trim()) return
     await createGame(name)
     navigate('/lobby')
   }
 
   const handleJoinRandom = async () => {
-    const name = `${selectedTitle} ${pseudo || 'joueur'}`
+    const name = `${title} ${pseudo || 'joueur'}`
     if (!pseudo.trim()) return
     await joinGameWithId(null, name)
     navigate('/lobby')
   }
 
   const handleJoinWithId = async () => {
-    const name = `${selectedTitle} ${pseudo || 'joueur'}`
+    const name = `${title} ${pseudo || 'joueur'}`
     if (!pseudo.trim()) return
     const id = gameIdInput.trim().padStart(3, '0').slice(0, 3)
     if (id.length !== 3 || !/^\d{3}$/.test(id)) {
@@ -68,8 +68,8 @@ export function Home() {
             <label className="block text-left text-stone-400 text-sm mb-2">Votre nom</label>
             <div className="flex gap-2">
               <select
-                value={selectedTitle}
-                onChange={(e) => setSelectedTitle(e.target.value as typeof TITLES[number])}
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
                 className="px-3 py-3 rounded-xl bg-stone-800 border border-stone-600 text-parchment focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-600"
               >
                 {TITLES.map((title) => (
