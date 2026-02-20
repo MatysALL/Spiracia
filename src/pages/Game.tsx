@@ -181,7 +181,7 @@ export function Game() {
                   {revealedCards.map((c) => (
                     <CharacterIcon key={c.id} character={c.character} revealed={true} size="sm" />
                   ))}
-                  {hiddenCards.map((c, idx) => (
+                  {hiddenCards.map((_, idx) => (
                     <div
                       key={`hidden-${idx}`}
                       className="w-6 h-6 rounded bg-stone-700 border border-stone-600 cursor-pointer hover:bg-stone-600 transition-colors"
