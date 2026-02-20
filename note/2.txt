@@ -8,3 +8,9 @@ Accueil :
         L'animation doit être plus fluide, quand je selectionne le cube, je ne peut pas le tourner comme je veux. - je cherche une animation de clique à trainer sur toute la page.
 Partie :
     l'ID de la partie doit être affiché pendant l'attente des joueurs.
+
+Partie :
+    Actuellement j'ai mon PC et mon telephone.
+    Quand je créer une partie avec mon pc ( j'obitens bien l'id ), je tente de rejoindre via ID sur téléphone et rien ne se passe...
+    Idem quand j'appuie sur le bouton rejoindre aléatoirement, ça me fait créer une partie plutot que rejoindre celle actuellement crée.
+    Fait les mise à jour pour corriger le systeme de partie, que je puisse enfin tester une vrai partie

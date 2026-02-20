@@ -27,7 +27,13 @@ export function Home() {
   const handleJoinRandom = async () => {
     const name = `${title} ${pseudo || 'joueur'}`
     if (!pseudo.trim()) return
-    await joinGameWithId(null, name)
+    // Si un ID est déjà présent (saisi ou via l'URL), on l'utilise pour rejoindre
+    const trimmed = gameIdInput.trim()
+    if (trimmed.length === 3 && /^\d{3}$/.test(trimmed)) {
+      await joinGameWithId(trimmed, name)
+    } else {
+      await joinGameWithId(null, name)
+    }
     navigate('/lobby')
   }
 

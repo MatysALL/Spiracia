@@ -190,6 +190,21 @@ export const useGameStore = create<GameStore>((set, get) => {
           // Rejoindre avec ID spécifique
           await peerService.initialize(false)
           await peerService.connectToHost(gameId)
+
+          // Initialiser l'état local pour ce joueur client
+          set({
+            games: [
+              {
+                id: gameId,
+                players: [{ id: playerId, name: playerName }],
+                started: false,
+              },
+            ],
+            currentPlayerId: playerId,
+            currentPlayerName: playerName,
+            currentGameId: gameId,
+            isHost: false,
+          })
         } else {
           // Rejoindre partie aléatoire (créer si aucune existe)
           const randomId = Math.floor(Math.random() * 1000)
