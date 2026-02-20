@@ -5,14 +5,13 @@ interface Logo3DProps {
 }
 
 export function Logo3D({ className = '' }: Logo3DProps) {
-  const [isHovered, setIsHovered] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [rotation, setRotation] = useState({ x: -15, y: 45 })
   const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (!isHovered && !isDragging) {
+    if (!isDragging) {
       // Animation de flottement verticale
       const startTime = Date.now()
       const interval = setInterval(() => {
@@ -24,42 +23,46 @@ export function Logo3D({ className = '' }: Logo3DProps) {
       }, 50)
       return () => clearInterval(interval)
     }
-  }, [isHovered, isDragging])
+  }, [isDragging])
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging || !dragStart) return
+      const deltaX = e.clientX - dragStart.x
+      const deltaY = e.clientY - dragStart.y
+      setRotation((prev) => ({
+        x: Math.max(-90, Math.min(90, prev.x - deltaY * 0.5)),
+        y: prev.y + deltaX * 0.5,
+      }))
+      setDragStart({ x: e.clientX, y: e.clientY })
+    }
+
+    const handleMouseUp = () => {
+      setIsDragging(false)
+      setDragStart(null)
+    }
+
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove)
+      document.addEventListener('mouseup', handleMouseUp)
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove)
+        document.removeEventListener('mouseup', handleMouseUp)
+      }
+    }
+  }, [isDragging, dragStart])
 
   const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault()
     setIsDragging(true)
     setDragStart({ x: e.clientX, y: e.clientY })
-  }
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging || !dragStart) return
-    const deltaX = e.clientX - dragStart.x
-    const deltaY = e.clientY - dragStart.y
-    setRotation((prev) => ({
-      x: prev.x - deltaY * 0.5,
-      y: prev.y + deltaX * 0.5,
-    }))
-    setDragStart({ x: e.clientX, y: e.clientY })
-  }
-
-  const handleMouseUp = () => {
-    setIsDragging(false)
-    setDragStart(null)
   }
 
   return (
     <div
       ref={containerRef}
-      className={`relative w-20 h-20 ${className}`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => {
-        setIsHovered(false)
-        setIsDragging(false)
-        setDragStart(null)
-      }}
+      className={`relative w-32 h-32 ${className}`}
       onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
       style={{ perspective: '1000px', cursor: isDragging ? 'grabbing' : 'grab' }}
     >
       <div
@@ -70,46 +73,53 @@ export function Logo3D({ className = '' }: Logo3DProps) {
           transition: isDragging ? 'none' : 'transform 0.1s ease-out',
         }}
       >
+        {/* Cube sans remplissage - juste les arêtes */}
         {/* Face avant */}
         <div
-          className="absolute w-full h-full bg-yellow-500 border-2 border-yellow-600"
+          className="absolute w-full h-full border-2 border-yellow-500"
           style={{
-            transform: 'translateZ(40px)',
+            transform: 'translateZ(60px)',
+            background: 'transparent',
           }}
         />
         {/* Face arrière */}
         <div
-          className="absolute w-full h-full bg-yellow-600 border-2 border-yellow-700"
+          className="absolute w-full h-full border-2 border-yellow-500"
           style={{
-            transform: 'translateZ(-40px) rotateY(180deg)',
+            transform: 'translateZ(-60px) rotateY(180deg)',
+            background: 'transparent',
           }}
         />
         {/* Face droite */}
         <div
-          className="absolute w-full h-full bg-yellow-400 border-2 border-yellow-500"
+          className="absolute w-full h-full border-2 border-yellow-500"
           style={{
-            transform: 'rotateY(90deg) translateZ(40px)',
+            transform: 'rotateY(90deg) translateZ(60px)',
+            background: 'transparent',
           }}
         />
         {/* Face gauche */}
         <div
-          className="absolute w-full h-full bg-yellow-600 border-2 border-yellow-700"
+          className="absolute w-full h-full border-2 border-yellow-500"
           style={{
-            transform: 'rotateY(-90deg) translateZ(40px)',
+            transform: 'rotateY(-90deg) translateZ(60px)',
+            background: 'transparent',
           }}
         />
         {/* Face haut */}
         <div
-          className="absolute w-full h-full bg-yellow-500 border-2 border-yellow-600"
+          className="absolute w-full h-full border-2 border-yellow-500"
           style={{
-            transform: 'rotateX(90deg) translateZ(40px)',
+            transform: 'rotateX(90deg) translateZ(60px)',
+            background: 'transparent',
           }}
         />
         {/* Face bas */}
         <div
-          className="absolute w-full h-full bg-yellow-700 border-2 border-yellow-800"
+          className="absolute w-full h-full border-2 border-yellow-500"
           style={{
-            transform: 'rotateX(-90deg) translateZ(40px)',
+            transform: 'rotateX(-90deg) translateZ(60px)',
+            background: 'transparent',
           }}
         />
       </div>

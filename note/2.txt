@@ -1,0 +1,10 @@
+Accueil :
+    Nom :
+        Titre à choix multiple ( invariable ) et apparait dans une case à gauche du choix du pseudo
+        Pseudo à choisir ( par défaut "joueur" )
+    Logo :
+        Pas de remplissage du cube jaune. - Ressemble à un cube de molecule.
+        le cube ne doit pas être dans un carré jaune comme il l'est actuellement, et doit apparaitre en grand.
+        L'animation doit être plus fluide, quand je selectionne le cube, je ne peut pas le tourner comme je veux. - je cherche une animation de clique à trainer sur toute la page.
+Partie :
+    l'ID de la partie doit être affiché pendant l'attente des joueurs.

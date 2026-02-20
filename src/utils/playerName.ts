@@ -1,4 +1,4 @@
-const TITLES = ['Forniqueur', 'Vandale', 'Truand', 'Batard', 'Salaud', 'Gourgandin'] as const
+export const TITLES = ['Forniqueur', 'Vandale', 'Truand', 'Batard', 'Salaud', 'Gourgandin'] as const
 const SPECIAL_TITLES = ['Imposteur', 'Contrefaçon', 'Alter-Ego', 'Complotiste'] as const
 
 export function generatePlayerName(): string {

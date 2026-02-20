@@ -2,38 +2,38 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Logo3D } from '../components/Logo3D'
 import { useGameStore } from '../store/gameStore'
-import { generatePlayerName } from '../utils/playerName'
+import { TITLES } from '../utils/playerName'
 
 export function Home() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { currentPlayerName, setPlayerName, createGame, joinGameWithId } = useGameStore()
   const [gameIdInput, setGameIdInput] = useState('')
-  const [generatedName, setGeneratedName] = useState('')
+  const [selectedTitle, setSelectedTitle] = useState(TITLES[0])
+  const [pseudo, setPseudo] = useState('joueur')
 
   useEffect(() => {
-    const name = generatePlayerName()
-    setGeneratedName(name)
-    setPlayerName(name)
-  }, [])
+    const fullName = `${selectedTitle} ${pseudo}`
+    setPlayerName(fullName)
+  }, [selectedTitle, pseudo, setPlayerName])
 
   const handleCreateGame = async () => {
-    const name = generatedName || currentPlayerName
-    if (!name.trim()) return
+    const name = `${selectedTitle} ${pseudo || 'joueur'}`
+    if (!pseudo.trim()) return
     await createGame(name)
     navigate('/lobby')
   }
 
   const handleJoinRandom = async () => {
-    const name = generatedName || currentPlayerName
-    if (!name.trim()) return
+    const name = `${selectedTitle} ${pseudo || 'joueur'}`
+    if (!pseudo.trim()) return
     await joinGameWithId(null, name)
     navigate('/lobby')
   }
 
   const handleJoinWithId = async () => {
-    const name = generatedName || currentPlayerName
-    if (!name.trim()) return
+    const name = `${selectedTitle} ${pseudo || 'joueur'}`
+    if (!pseudo.trim()) return
     const id = gameIdInput.trim().padStart(3, '0').slice(0, 3)
     if (id.length !== 3 || !/^\d{3}$/.test(id)) {
       alert('Veuillez entrer un ID valide (3 chiffres)')
@@ -55,9 +55,7 @@ export function Home() {
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-900/20 via-transparent to-transparent pointer-events-none" />
       <div className="relative z-10 text-center max-w-md w-full">
         <div className="flex justify-center mb-6">
-          <div className="rounded-2xl bg-stone-800/80 p-6 border border-amber-800/50 shadow-xl">
-            <Logo3D className="mx-auto" />
-          </div>
+          <Logo3D className="mx-auto" />
         </div>
         <h1 className="font-display text-5xl md:text-6xl text-amber-100 mb-2 tracking-wide" style={{ fontFamily: '"Medieval Sharp", cursive' }}>
           Spiracia
@@ -68,23 +66,26 @@ export function Home() {
         <div className="space-y-4">
           <div>
             <label className="block text-left text-stone-400 text-sm mb-2">Votre nom</label>
-            <input
-              type="text"
-              value={currentPlayerName}
-              onChange={(e) => setPlayerName(e.target.value)}
-              placeholder={generatedName}
-              className="w-full px-4 py-3 rounded-xl bg-stone-800 border border-stone-600 text-parchment placeholder-stone-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-600"
-            />
-            <button
-              onClick={() => {
-                const newName = generatePlayerName()
-                setGeneratedName(newName)
-                setPlayerName(newName)
-              }}
-              className="mt-2 text-xs text-amber-400 hover:text-amber-300 underline"
-            >
-              Générer un nouveau nom
-            </button>
+            <div className="flex gap-2">
+              <select
+                value={selectedTitle}
+                onChange={(e) => setSelectedTitle(e.target.value as typeof TITLES[number])}
+                className="px-3 py-3 rounded-xl bg-stone-800 border border-stone-600 text-parchment focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-600"
+              >
+                {TITLES.map((title) => (
+                  <option key={title} value={title}>
+                    {title}
+                  </option>
+                ))}
+              </select>
+              <input
+                type="text"
+                value={pseudo}
+                onChange={(e) => setPseudo(e.target.value)}
+                placeholder="joueur"
+                className="flex-1 px-4 py-3 rounded-xl bg-stone-800 border border-stone-600 text-parchment placeholder-stone-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-600"
+              />
+            </div>
           </div>
 
           <div className="space-y-3">
