@@ -1,0 +1,31 @@
+Accueil :
+	Logo :
+		Designer un nouveau logo : cube jaune en 3D ( similaire au favicon ) qui remplace le logo d'épée au dessus de "spiracia". Faire en sorte que ce cube en 3D ait une animation qui lui permet d'être tourné en cliquant de 		dessus ( rotation du cube en fonction de là ou la souris va ). Quand la souris n'est pas dessus ( pas de clique sur le logo ), alors le cube en 3D a une animation fluide sur l'axe haut-bas qui le fait "flotter" ou 			descendre et remonter.
+	Nom du Jeu :
+		Spiracia doit être écris dans une police de moyen age ou pirate.
+		En dessous, il était écris Ville mediévale * Complots... Remplace ça par uniquement "Comprend les cartes de : Complots 1"
+		Le nom du joueur doit être composé d'un titre au choix parmis "Forniqueur, Vandale, Truand, Batard, Salaud, Gourgandin" suivis d'un pseudo d'entre 4 lettre et 10 lettre prenant uniquement des charactères a-z, A-Z.
+	Rejoindre une partie :
+		Garder le bouton rejoindre une partie aléatoire ( avec le même fonctionnement : créer une partie si aucune existe etc,etc.. ).
+		Créer une partie.
+		Rajouter un bouton ; l'utilisateur insère les 3 chiffres de l'ID de la partie puis peut rejoindre avec celui-ci, si la partie est complète ( 4 joueurs, indique partie complète et empêche de la rejoindre ).
+
+System :
+	Nom du Jeu :
+		Si 2 joueurs ont le même titre + pseudo, alors le titre du 2eme à avoir rejoind devient : Imposteur
+		Pour 3 joueurs, le 2eme prend le titre Imposteur, et le 3eme prend le titre : Contrefaçon
+		Pour 4 joueurs ayant le même titre + pseudo, alors le titre du 2 est Imposteur, 3 Contrefaçon, et 4 prend le titre : Alter-Ego ( Et easter egg, le 1er joueur prend le titre : Complotiste )
+
+Personnalisation :
+	Cartes lié à complot :
+
+
+
+INFO IMPORTANTE SUR CETTE 2EME VERSION :
+1.Je souhaite retirer les bots et transformer le jeu en multijoueur Peer-to-Peer en utilisant la bibliothèque PeerJS.
+
+2.Crée un service de connexion où un joueur peut 'Créer une partie' (devient le Host) ou 'Rejoindre avec un ID'.
+-> l'id peut être affiché dans l'URL par un code allant de 000 à 999. 
+2.2.Modifie le store Zustand pour qu'il synchronise les actions entre les joueurs via PeerJS.
+
+3.Garde la logique des règles du PDF (10 pièces max obligent l'assassinat , perte de vie si mise en doute ratée ).

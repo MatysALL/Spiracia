@@ -32,7 +32,12 @@ export function Lobby() {
   return (
     <div className="min-h-screen flex flex-col bg-stone-900 p-6">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="font-display text-2xl text-amber-100">Salle d'attente</h1>
+        <div>
+          <h1 className="font-display text-2xl text-amber-100">Salle d'attente</h1>
+          <p className="text-stone-400 text-sm mt-1">
+            ID de la partie : <span className="font-mono text-amber-400 font-semibold">{currentGameId}</span>
+          </p>
+        </div>
         <button
           onClick={handleLeave}
           className="flex items-center gap-2 px-4 py-2 rounded-lg bg-stone-800 text-stone-400 hover:text-parchment border border-stone-600"
